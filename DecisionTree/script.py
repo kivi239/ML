@@ -17,10 +17,9 @@ def letter_a(name):
     l = len(name)
     return name[l - 2] == 'а'
 
-def letter_not_a(name):
+def letter_ya(name):
     l = len(name)
-    return name[l - 2] != 'а'
-
+    return name[l - 2] == 'я'
 
 def true(name):
     return True
@@ -41,4 +40,8 @@ def entropy(f):
 print(entropy(true))
 
 print(entropy(letter_a))
-print(entropy(letter_not_a))
+print(entropy(lambda x: not letter_a(x)))
+
+print(entropy(lambda x: letter_a(x) or letter_ya(x)))
+
+print(entropy(lambda x: (not letter_a(x)) and (not letter_ya(x))))
