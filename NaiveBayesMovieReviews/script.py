@@ -1,5 +1,6 @@
 # coding=utf-8
 import pymorphy2
+import math
 
 with open('bad_texts.txt') as bad_file:
     bad = bad_file.readlines()
@@ -50,20 +51,20 @@ def prob_of_word(word, class_data):
                 count_class += 1
 
     count_all_words = count_words(class_data)
-    return (count_class + 1) / (count_all_words + 1)
+    return math.log2(count_class + 1) - math.log2(count_all_words + 1)
 
 def calc_probability(class_data, review):
-    prob = len(class_data) / len(all_texts)
+    prob = math.log2(len(class_data)) - math.log2(len(all_texts))
     for word in review.split(" "):
-        prob *= prob_of_word(word, class_data)
+        prob += prob_of_word(word, class_data)
     return prob
 
 prob_good = calc_probability(good, norm_review)
 prob_bad = calc_probability(bad, norm_review)
 prob_neutral = calc_probability(neutral, norm_review)
-print("Unnormalized probability that it is a good review:    %.15lf\n" % (prob_good))
-print("Unnormalized probability that it is a bad review:     %.15lf\n" % (prob_bad))
-print("Unnormalized probability that it is a neutral review: %.15lf\n" % (prob_neutral))
+print("Log of probability that it is a good review:    %.5lf\n" % (prob_good))
+print("Log of probability that it is a bad review:     %.5lf\n" % (prob_bad))
+print("Log of probability that it is a neutral review: %.5lf\n" % (prob_neutral))
 
 if (prob_good > prob_bad and prob_good > prob_neutral):
     print("Good review")
