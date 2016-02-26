@@ -25,7 +25,7 @@ print("Please, enter your review\n")
 review = input()
 
 def word_remove_symbols(word):
-    letters = list(u".,!?-()$#;:+=%^&*<>\"'[]{}\\/~—«»")
+    letters = list(u".,…!?-()$#;:+=%^&*<>\"'[]{}\\/~—«»")
     cnt = 0
     for letter in letters:
         if word.find(letter) != -1:
@@ -43,25 +43,38 @@ for word in review.split(" "):
 
 print(norm_review)
 
-def prob_of_word(word, class_data):
-    count_class = 0
-    for norm_review in class_data:
-        for w in norm_review.split(" "):
-            if (w == word):
-                count_class += 1
+# 'word': (bad, good, neutral)
+prob_dict = {}
+with open('weights.in', 'r') as f:
+    for line in f:
+        data = line.split(" ")
+        word = data[0]
+        a = float(data[1])
+        b = float(data[2])
+        c = float(data[3])
 
-    count_all_words = count_words(class_data)
-    return math.log2(count_class + 1) - math.log2(count_all_words + 1)
+        prob_dict[word] = (a, b, c)
 
-def calc_probability(class_data, review):
+print("Finish reading the weights")
+
+
+words_in = [count_words(bad), count_words(good), count_words(neutral)]
+V = len(prob_dict)
+
+def calc_probability(class_data, review, class_id):
     prob = math.log2(len(class_data)) - math.log2(len(all_texts))
     for word in review.split(" "):
-        prob += prob_of_word(word, class_data)
+        if (word == ""): continue
+        if (word not in prob_dict): continue
+
+        prob += prob_dict[word][class_id]
+
     return prob
 
-prob_good = calc_probability(good, norm_review)
-prob_bad = calc_probability(bad, norm_review)
-prob_neutral = calc_probability(neutral, norm_review)
+
+prob_good = calc_probability(good, norm_review, 1)
+prob_bad = calc_probability(bad, norm_review, 0)
+prob_neutral = calc_probability(neutral, norm_review, 2)
 print("Log of probability that it is a good review:    %.5lf\n" % (prob_good))
 print("Log of probability that it is a bad review:     %.5lf\n" % (prob_bad))
 print("Log of probability that it is a neutral review: %.5lf\n" % (prob_neutral))
