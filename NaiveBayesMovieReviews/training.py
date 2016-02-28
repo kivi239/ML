@@ -9,7 +9,6 @@ with open('good_texts.txt') as good_file:
 with open('neutral_texts.txt') as neutral_file:
     neutral = neutral_file.readlines()
 
-
 def count_words(class_data):
     cnt = 0
     for review in class_data:
