@@ -13,6 +13,11 @@ struct Vec {
   public:
   Vec() : size(0), coord(NULL) {}
 
+  Vec(int size) : size(size), coord(new float[size]) {
+    for (int i = 0; i < size; i++)
+      coord[i] = 0;
+  }
+
   Vec(int size, FILE *f) : size(size) {
     coord = new float[size];
     for (int i = 0; i < size; i++) {
@@ -60,6 +65,29 @@ struct Vec {
     Vec tmp(x);
     this->swap(tmp);
 
+    return *this;
+  }
+
+  Vec operator + (Vec &x) {
+    Vec sum(size);
+    for (int i = 0; i < size; i++)
+      sum.coord[i] = coord[i] + x.coord[i];
+
+    return sum;
+  }
+
+  Vec operator += (Vec &x) {
+    for (int i = 0; i < size; i++)
+      coord[i] += x.coord[i];
+
+    return *this;
+  }
+
+  Vec operator /= (float n) {
+    for (int i = 0; i < size; i++) {
+      coord[i] /= n;
+    }
+    
     return *this;
   }
 

@@ -1,12 +1,13 @@
 #include <cstdio>
 #include <cmath>
 #include <algorithm>
+#include <ctime>
 
-const int N = 100;
+const int N = 1000000;
 
 int main() {
   freopen("sample2d.in", "w", stdout);
-  //srand(time(NULL))
+  srand(time(NULL));
 
   for (int i = 0; i < N / 4; i++) {
     double x = (rand() % 10000) * 1.0 / 100;
