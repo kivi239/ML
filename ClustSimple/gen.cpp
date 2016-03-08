@@ -3,7 +3,7 @@
 #include <algorithm>
 #include <ctime>
 
-const int N = 1000000;
+const int N = 20;
 
 int main() {
   freopen("sample2d.in", "w", stdout);
