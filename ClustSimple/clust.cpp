@@ -7,9 +7,9 @@
 #include <iostream> 
 using namespace std;
 
-const int K = 5;
+const int K = 40;
 const int Size = 2;
-const int Iterations = 5;
+const int Iterations = 100;
 const int N = (int)1e7;
 
 #define file_name "sample2d.in"
@@ -237,7 +237,8 @@ int main() {
 
   cerr << "start clusterization" << endl;
   K_means(n);
-
+  cerr << "finish clasterization, " << (clock() - t) / CLOCKS_PER_SEC << endl;
+  
   freopen("clusters.txt", "w", stdout);
   print_clusters(n);
 
