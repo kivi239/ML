@@ -1,7 +1,7 @@
 #include <cstdio>
 #include <cmath>
 #include <algorithm>
-#include "Vec.h"
+#include "vec.h"
 #include <ctime>
 #include <vector>
 
