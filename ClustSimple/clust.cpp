@@ -4,7 +4,7 @@
 #include <ctime>
 #include <vector>
 
-#include <iostream> // for debug, delete these lines later
+#include <iostream> 
 using namespace std;
 
 const int K = 5;
