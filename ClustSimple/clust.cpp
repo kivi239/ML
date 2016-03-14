@@ -3,16 +3,19 @@
 #include <algorithm>
 #include <ctime>
 #include <vector>
+#include <cstring>
+#include <string>
 
 #include <iostream> 
 using namespace std;
 
 const int K = 5;
 const int Size = 2;
-const int Iterations = 5;
+const int Iterations = 100;
 const int N = (int)1e7;
 
 #define file_name "sample2d.in"
+#define file_with_words "words.in"
 
 float centers[K][Size];
 float new_centers[K][Size];
@@ -20,6 +23,9 @@ float vec[Size];
 float distribution[N];
 float prefix[N];
 int clust_size[K];
+
+
+std::string words[N];
 
 // returns the id of new center according to the centers distribution
 int random_id(int n) {
@@ -191,20 +197,9 @@ void print_clusters(int n) {
 
   for (int i = 0; i < K; i++) {
     printf("Cluster #%d:\n", i);
-    f = fopen(file_name, "r");
-    int prev = 0;
-    for (int j = 0; j < (int)clusters[i].size(); j++) {
-      for (int k = 0; k < Size * (clusters[i][j] - prev); k++) {
-        float tmp;
-        fscanf(f, "%f", &tmp);
-      }
-
-      for (int k = 0; k < Size; k++)
-      	fscanf(f, "%f", &vec[k]);
-
-      print(vec);   
-      prev = clusters[i][j] + 1;
-    }
+    for (int j = 0; j < (int)clusters[i].size(); j++)
+    	printf("%s ", words[clusters[i][j]].c_str());
+    puts("");
   }
 }
 
@@ -237,8 +232,22 @@ int main() {
 
   cerr << "start clusterization" << endl;
   K_means(n);
-
+  cerr << "finish clasterization, " << (clock() - t) / CLOCKS_PER_SEC << endl;
+  
   freopen("clusters.txt", "w", stdout);
+  
+  FILE *g = fopen(file_with_words, "r");
+  char s[100];
+  for (int i = 0; i < n; i++) {
+  	fscanf(g, "%s", s);
+  	int l = strlen(s);
+  	for (int j = 0; j < l; j++)
+  		words[i] += s[j]; 	
+  	cerr << words[i] << ' ';
+  }
+
+  cerr << endl;
+  
   print_clusters(n);
 
   cerr << clock() - t << endl;
