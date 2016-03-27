@@ -3,16 +3,19 @@
 #include <algorithm>
 #include <ctime>
 #include <vector>
+#include <cstring>
+#include <string>
 
 #include <iostream> 
 using namespace std;
 
-const int K = 40;
+const int K = 5;
 const int Size = 2;
 const int Iterations = 100;
 const int N = (int)1e7;
 
 #define file_name "sample2d.in"
+#define file_with_words "words.in"
 
 float centers[K][Size];
 float new_centers[K][Size];
@@ -20,6 +23,9 @@ float vec[Size];
 float distribution[N];
 float prefix[N];
 int clust_size[K];
+
+
+std::string words[N];
 
 // returns the id of new center according to the centers distribution
 int random_id(int n) {
@@ -67,6 +73,13 @@ float mindist(float *x, int n) {
 void division(float *x, float n) {
   for (int i = 0; i < Size; i++) {
     x[i] /= n;
+  }
+}
+
+// multiply all coordinates vector x by n
+void mult(float *x, float n) {
+  for (int i = 0; i < Size; i++) {
+    x[i] *= n;
   }
 }
 
@@ -124,19 +137,24 @@ void K_meanspp(int n) {
   }
 }
 
-void K_means(int n) {
+void mini_batch_K_means(int n) {
+  FILE *f = fopen(file_name, "r");
+    
   for (int it = 0; it < Iterations; it++) {
     cerr << "iteration " << it << endl;
     for (int i = 0; i < K; i++)
       clust_size[i] = 0;
 
-    FILE *f = fopen(file_name, "r");
     for (int i = 0; i < K; i++)  {
     	for (int j = 0; j < Size; j++) 
-    		new_centers[i][j] = 0;
+    		new_centers[i][j] = centers[i][j];
     }
 
-    for (int i = 0; i < n; i++) {
+    int cnt_points = n / K;
+    if (it == Iterations - 1)
+    	cnt_points = n / K + n % K;
+
+    for (int i = 0; i < cnt_points; i++) {
       for (int j = 0; j < Size; j++)
       	fscanf(f, "%f", &vec[j]);
       int closest_center = 0;
@@ -149,14 +167,16 @@ void K_means(int n) {
         
       }
 
-      add(new_centers[closest_center], vec);
       clust_size[closest_center]++; 
+      float nu = 1.0 / clust_size[closest_center];
+      
+      mult(vec, nu);
+      mult(new_centers[closest_center], 1 - nu);
+      add(new_centers[closest_center], vec);
+      
     }
 
-    fclose(f);
-  
     for (int i = 0; i < K; i++) {
-      division(new_centers[i], clust_size[i]);
       print(new_centers[i]);
     }
 
@@ -164,8 +184,10 @@ void K_means(int n) {
       for (int j = 0; j < Size; j++)
       	centers[i][j] = new_centers[i][j];
     }
+
     printf("\n");
   }
+  fclose(f);
 }
 
 void print_clusters(int n) {
@@ -173,38 +195,28 @@ void print_clusters(int n) {
   
   FILE *f = fopen(file_name, "r");
   for (int i = 0; i < n; i++) {
-      for (int j = 0; j < Size; j++)
-      	fscanf(f, "%f", &vec[j]);
+    for (int j = 0; j < Size; j++)
+    	fscanf(f, "%f", &vec[j]);
 
-      int closest_center = 0;
-      float mndist = 1e9;
-      for (int j = 0; j < K; j++) {
-        if (sqdist(vec, centers[j]) < mndist) {
-          closest_center = j;
-          mndist = sqdist(vec, centers[j]);
-        }
+    int closest_center = 0;
+    float mndist = 1e9;
+    for (int j = 0; j < K; j++) {
+      if (sqdist(vec, centers[j]) < mndist) {
+        closest_center = j;
+        mndist = sqdist(vec, centers[j]);
       }
-           
-      clusters[closest_center].push_back(i);
     }
+         
+    clusters[closest_center].push_back(i);
+  }
+
   fclose(f);
 
   for (int i = 0; i < K; i++) {
     printf("Cluster #%d:\n", i);
-    f = fopen(file_name, "r");
-    int prev = 0;
-    for (int j = 0; j < (int)clusters[i].size(); j++) {
-      for (int k = 0; k < Size * (clusters[i][j] - prev); k++) {
-        float tmp;
-        fscanf(f, "%f", &tmp);
-      }
-
-      for (int k = 0; k < Size; k++)
-      	fscanf(f, "%f", &vec[k]);
-
-      print(vec);   
-      prev = clusters[i][j] + 1;
-    }
+    for (int j = 0; j < (int)clusters[i].size(); j++)
+    	printf("%s ", words[clusters[i][j]].c_str());
+    puts("");
   }
 }
 
@@ -236,10 +248,20 @@ int main() {
   puts("");
 
   cerr << "start clusterization" << endl;
-  K_means(n);
+  mini_batch_K_means(n);
   cerr << "finish clasterization, " << (clock() - t) / CLOCKS_PER_SEC << endl;
   
   freopen("clusters.txt", "w", stdout);
+  
+  FILE *g = fopen(file_with_words, "r");
+  char s[100];
+  for (int i = 0; i < n; i++) {
+  	fscanf(g, "%s", s);
+  	int l = strlen(s);
+  	for (int j = 0; j < l; j++)
+  		words[i] += s[j]; 	
+  }
+
   print_clusters(n);
 
   cerr << clock() - t << endl;
