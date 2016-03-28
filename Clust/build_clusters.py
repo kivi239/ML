@@ -8,12 +8,12 @@ def remove_newline(a):
     a = a.split("\n")[0]
     return a
 
-with open("clusters_wiki_5000.txt") as f:
+with open("clusters_all_5000.txt") as f:
     for line in f:
         data = line.split(" ")
         clusters[int(remove_newline(data[1])) - 1].append(data[0])
 
-f = open("clusters_wiki_5000_distr.txt", "w")
+f = open("clusters_all_5000_distr.txt", "w")
 for i in range(K):
     f.write("Cluster #" + str(i) + ": ")
     for word in clusters[i]:
