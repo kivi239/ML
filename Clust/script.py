@@ -26,12 +26,16 @@ res = clust.fit(data)
 
 print("finish clustering")
 
-f = open('clusters_all_5000.txt', 'w')
+f = open('clusters_all_5000_2.txt', 'w')
 
 for i in range(len(data)):
-    f.write(words[i] + ' ')
-    f.write(str(res.labels_[i]))
-    f.write('\n')
+    try:
+        f.write(words[i] + ' ')
+        f.write(str(res.labels_[i]))
+        f.write('\n')
+    except UnicodeEncodeError:
+        print("can't encode")
+
 
 
 
