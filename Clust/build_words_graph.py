@@ -36,6 +36,8 @@ with open(file) as f:
                     norm_word = morph.parse(word)[0].normal_form
                     normal_forms[word] = norm_word
                     word = norm_word
+                    if word in id_words:
+                        continue
                     id_words[word] = cur_id
                     word_ids.append(word)
                     cur_id += 1
@@ -70,7 +72,7 @@ for i in range(1, cur_id):
     node_with_d[i] = (word_ids[i], len(graph[i]))
 
 node_with_d.sort(key=itemgetter(1), reverse=True)
-g = open('clusters/words_degrees.txt', 'w')
+g = open('text_topics/words_degrees.txt', 'w')
 for t in node_with_d:
     g.write(t[0] + ' ' + str(t[1]))
     g.write('\n')
