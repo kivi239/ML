@@ -33,7 +33,7 @@ print("Built model")
 print(time.time() - t)
 t = time.time()
 
-clust = MiniBatchKMeans(n_clusters=5000, init='k-means++', max_iter=60, batch_size=10000)
+clust = MiniBatchKMeans(n_clusters=K, init='k-means++', max_iter=60, batch_size=10000)
 
 data = [] #[[0, 2], [1, 1], [5, 5], [4, 6]]
 

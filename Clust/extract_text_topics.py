@@ -4,7 +4,7 @@ import pymorphy2
 from sklearn.cluster import MiniBatchKMeans
 from operator import itemgetter
 
-K = 30
+K = 50
 D = 200
 INF = 1e9
 file = 'text/ch.txt'
@@ -54,12 +54,9 @@ def norm(v):
 
 def cosine_distance(x, y):
     dist = 1
-    #norm_x = norm(x)
-    #norm_y = norm(y)
     product = 0
     for i in range(D):
         product += x[i] * y[i]
-    #product /= (norm_x * norm_y)
     return dist - product
 
 
@@ -124,6 +121,9 @@ with open(file) as f:
                     normal_forms[word] = norm_word
                     word = norm_word
 
+                    tags = morph.parse(word)[0].tag
+                    if 'NOUN' not in tags and 'LATN' not in tags and 'ADJF' not in tags:
+                        continue
                     if norm_word not in model:
                         continue
                     if word in id_words:
@@ -143,7 +143,7 @@ print(len(id_words))
 print("#####")
 
 
-clust = MiniBatchKMeans(n_clusters=K, init='k-means++', max_iter=60, batch_size=10000)
+clust = MiniBatchKMeans(n_clusters=K, init='k-means++', max_iter=100, batch_size=10000)
 
 res = clust.fit(data)
 
