@@ -92,8 +92,8 @@ model = gensim.models.Word2Vec.load_word2vec_format('../Word2Vec/all.s200.w11.n1
 print("Built model")
 morph = pymorphy2.MorphAnalyzer()
 
-separators = ['...', '.', ',', '?', '!', ';']
-trash = ['"', '--', '(', ')']
+separators = ['...', '.', '?', '!']
+trash = ['"', '--', '(', ')', ',', ';']
 
 # we will cache normal forms of words
 normal_forms = dict()

@@ -5,8 +5,8 @@ file = "text/ch.txt"
 
 morph = pymorphy2.MorphAnalyzer()
 
-separators = ['...', '.', ',', '?', '!', ';']
-trash = ['"', '--', '(', ')']
+separators = ['...', '.', '?', '!']
+trash = ['"', '--', '(', ')', ',', ';']
 
 # we will cache normal forms of words
 normal_forms = dict()
