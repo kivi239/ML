@@ -4,8 +4,8 @@ import pymorphy2
 from sklearn.cluster import MiniBatchKMeans
 from operator import itemgetter
 
-K = 50
-D = 200
+K = 60
+D = 200 + 25
 INF = 1e9
 file = 'text/ch.txt'
 
@@ -88,12 +88,14 @@ def minimum_tuple(t1, t2):
 print("Building model")
 
 model = gensim.models.Word2Vec.load_word2vec_format('../Word2Vec/all.s200.w11.n1.v20.cbow.bin', binary=True, unicode_errors='ignore')
+small_model = gensim.models.Word2Vec.load_word2vec_format('TrainSmall/word2vec/w2v.bin', binary=True, unicode_errors='ignore')
 
 print("Built model")
+
 morph = pymorphy2.MorphAnalyzer()
 
 separators = ['...', '.', '?', '!']
-trash = ['"', '--', '(', ')', ',', ';']
+trash = ['"', '--', '(', ')', ',', ';', ':', ':']
 
 # we will cache normal forms of words
 normal_forms = dict()
@@ -117,6 +119,7 @@ with open(file) as f:
                 if word == "":
                     continue
                 if word not in normal_forms:
+                    unnorm = word
                     norm_word = morph.parse(word)[0].normal_form
                     normal_forms[word] = norm_word
                     word = norm_word
@@ -132,7 +135,16 @@ with open(file) as f:
                     id_words[word] = cur_id
                     word_ids.append(word)
                     cur_id += 1
-                    x = model[word]
+                    x = []
+                    for c in model[word]:
+                        x.append(c)
+                    if word not in small_model:
+                        word = unnorm
+
+                    if word not in small_model:
+                        print("WTF???" + word)
+                    for c in small_model[word]:
+                        x.append(c)
                     x_norm = norm(x)
                     data.append(division(x, x_norm))
 
@@ -247,7 +259,7 @@ for i in range(len(word_ids)):
 
 degree = dict()
 max_degree = -1
-with open('text_topics/words_degrees.txt') as f:
+with open('merge_dim_text_topics/words_degrees.txt') as f:
     for line in f:
         line = line.rstrip("\n")
         data = line.split(" ")
@@ -264,7 +276,7 @@ for i in range(len(word_ids)):
 score.sort(key=itemgetter(0), reverse=True)
 
 
-g = open('text_topics/words_scoring.txt', 'w')
+g = open('merge_dim_text_topics/words_scoring' + str(K) + '.txt', 'w', encoding='utf-8')
 for t in score:
     g.write(t[1] + ' ' + str("%.10f" % t[0]) + '\n')
 
@@ -288,7 +300,7 @@ for i in range(K):
 
 topic_score_sort.sort(key=itemgetter(0), reverse=True)
 
-h = open('text_topics/topics_scoring.txt', 'w')
+h = open('merge_dim_text_topics/topics_scoring' + str(K) + '.txt', 'w', encoding='utf-8')
 for i in range(K):
     id_topic = topic_score_sort[i][1]
     h.write("Topic #" + str(id_topic) + ": " + str("%.5f" % topic_score_sort[i][0]) + "\n")

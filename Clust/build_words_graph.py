@@ -6,7 +6,7 @@ file = "text/ch.txt"
 morph = pymorphy2.MorphAnalyzer()
 
 separators = ['...', '.', '?', '!']
-trash = ['"', '--', '(', ')', ',', ';']
+trash = ['"', '--', '(', ')', ',', ';', ':']
 
 # we will cache normal forms of words
 normal_forms = dict()
@@ -72,7 +72,7 @@ for i in range(1, cur_id):
     node_with_d[i] = (word_ids[i], len(graph[i]))
 
 node_with_d.sort(key=itemgetter(1), reverse=True)
-g = open('text_topics/words_degrees.txt', 'w')
+g = open('merge_dim_text_topics/words_degrees.txt', 'w')
 for t in node_with_d:
     g.write(t[0] + ' ' + str(t[1]))
     g.write('\n')
