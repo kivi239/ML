@@ -27,7 +27,7 @@ with open('../../OK/big_likes_file.tsv/big_likes_file.tsv') as f:
             print("%d lines proceed" % cnt)
 
 
-f = open('../../OK/userlikes.txt', 'w', encoding='utf-8')
+f = open('../../OK/user_likes.txt', 'w', encoding='utf-8')
 for user in user_likes:
     f.write(str(user) + ':')
     for post in user_likes[user]:
