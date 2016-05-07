@@ -1,6 +1,8 @@
 from TrainSmall import training
 import build_words_graph
 from os import listdir
+from os import mkdir
+import os
 import extract_text_topics
 import gensim
 
@@ -38,6 +40,7 @@ with open('../../OK/user_likes.txt', encoding='utf-8') as f:
 
         g = open('texts.txt', 'w', encoding='utf-8')
 
+        cnt_existing_posts = 0
         for like in likes:
             Id = like.split(", ")
             group_id = Id[0]
@@ -46,15 +49,20 @@ with open('../../OK/user_likes.txt', encoding='utf-8') as f:
             if text == "-1":
                 continue
 
+            cnt_existing_posts += 1
             g.write(text)
         g.close()
+        if cnt_existing_posts < 15:
+            continue
 
-        build_words_graph.build_graph('texts.txt', 'words_graph.txt')
+        if not os.path.isdir('../OK_results/user' + user_id):
+            mkdir('../OK_results/user' + user_id)
+
+        build_words_graph.build_graph('texts.txt', '../OK_results/user' + user_id + '/words_degrees.txt')
         training.train_small('texts.txt')
         extract_text_topics.extract_text_topics('texts.txt', K, user_id, model)
 
         cnt += 1
+        print("For %d users interests profile was built", cnt)
 
-        if cnt > 2:
-            break
 
