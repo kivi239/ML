@@ -6,7 +6,7 @@ def build_graph(file, file_out):
     morph = pymorphy2.MorphAnalyzer()
 
     separators = ['...', '…', '.', '?', '!']
-    trash = ['"', '---', '--',  '(', ')', ',', ';', ':', '***']
+    trash = ['"', '---', '--',  '(', ')', ',', ';', ':', '***', '«', '»']
 
     # we will cache normal forms of words
     normal_forms = dict()
@@ -75,4 +75,4 @@ def build_graph(file, file_out):
     for t in node_with_d:
         g.write(t[0] + ' ' + str(t[1]))
         g.write('\n')
-
+    g.close()

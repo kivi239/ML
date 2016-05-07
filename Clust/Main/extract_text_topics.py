@@ -96,7 +96,7 @@ def extract_text_topics(file, K, user_id, model):
     cur_id = 0
     data = []
 
-    with open(file) as f:
+    with open(file, encoding='utf-8') as f:
         for line in f:
             line = line.rstrip("\n")
             for sep in separators:
@@ -123,9 +123,6 @@ def extract_text_topics(file, K, user_id, model):
                         if word in id_words:
                             continue
 
-                        id_words[word] = cur_id
-                        word_ids.append(word)
-                        cur_id += 1
                         x = []
                         for c in model[word]:
                             x.append(c)
@@ -134,6 +131,13 @@ def extract_text_topics(file, K, user_id, model):
 
                         if word not in small_model:
                             print("WTF???" + word)
+                            print(norm_word)
+                            continue
+
+                        id_words[norm_word] = cur_id
+                        word_ids.append(norm_word)
+                        cur_id += 1
+
                         for c in small_model[word]:
                             x.append(c)
                         x_norm = norm(x)
@@ -246,7 +250,7 @@ def extract_text_topics(file, K, user_id, model):
     degree = dict()
     max_degree = -1
     print("here")
-    with open('../OK_results/user' + user_id + '/words_degrees.txt') as f:
+    with open('../OK_results/user' + user_id + '/words_degrees.txt', encoding='utf-8') as f:
         for line in f:
             line = line.rstrip("\n")
             data = line.split(" ")
