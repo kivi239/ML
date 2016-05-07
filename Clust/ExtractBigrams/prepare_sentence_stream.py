@@ -13,10 +13,12 @@ def remove_empty_lists(stream):
 
 
 def file_to_stream(filename, seps=separators, trs=trash):
+    print("here")
     sentence_stream = []
-    with open(filename) as f:
+    with open(filename, encoding='utf-8') as f:
         for line in f:
             line = line.rstrip('\n')
+            print(line)
             for sep in seps:
                 line = line.replace(sep, '|')
             paragraph = line.split('|')

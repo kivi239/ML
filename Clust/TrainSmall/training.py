@@ -8,7 +8,6 @@ trash = ['"', '---', '--',  '(', ')', ',', ';', ':', '***']
 
 def train_small(file):
     text = prepare_sentence_stream.file_to_stream(file, seps=separators, trs=trash)
-
     file_txt = 'word2vec/text.txt'
     f = open(file_txt, 'w', encoding='utf-8')
     f.write(str(text))
