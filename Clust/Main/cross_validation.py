@@ -151,7 +151,7 @@ while line_f != '' and line_g != '':
             topic_scores_summary += topic_score[i]
 
         for i in range(newK):
-            W[i] = topic_score[i] / topic_scores_summary
+            W[i] = topic_score[i] #/ topic_scores_summary
 
         topic_of_words = dict()
         score = dict()
@@ -164,8 +164,8 @@ while line_f != '' and line_g != '':
             for p in word_in_topic[i]:
                 word = p[1]
                 score[word] = word_score[id_words[word]][0]
-                if word_score_summary != 0:
-                    score[word] /= word_score_summary
+                #if word_score_summary != 0:
+                #    score[word] /= word_score_summary
                 topic_of_words[word] = i
         if typ == 'like':
             score_like = score
@@ -200,8 +200,10 @@ while line_f != '' and line_g != '':
                 if word in topic_of_words_dislike:
                     P_dislike[topic_of_words_dislike[word]] += score_dislike[word]
                     sum_dislike += score_dislike[word]
-        print(d)
-        print(sum_like, sum_dislike)
+        if sum_like == 0:
+            sum_like = 1
+        if sum_dislike == 0:
+            sum_dislike = 1
         for i in range(K):
             p_like += (P_like[i] / sum_like) * W_like[i]
             p_dislike += (P_dislike[i] / sum_dislike) * W_dislike[i]
