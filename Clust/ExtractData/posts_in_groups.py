@@ -1,7 +1,3 @@
-from ExtractBigrams import prepare_sentence_stream
-import datetime
-import operator
-
 from os import listdir
 
 separators = ['...', '.', '?', '!', ',', ';', '…']
@@ -41,6 +37,7 @@ for file in files:
                 posts = []
 
             #date = datetime.datetime.strptime(data[3][:-6], "%Y-%m-%dT%H:%M:%S.%f")
+            #print(date)
             posts.append((post_id, data[3], data[4]))
 
             prev_id = group_id
