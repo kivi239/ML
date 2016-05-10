@@ -19,7 +19,7 @@ print("Building model...")
 model = gensim.models.Word2Vec.load_word2vec_format('../../Word2Vec/all.s200.w11.n1.v20.cbow.bin', binary=True, unicode_errors='ignore')
 print("Build model")
 
-K = 30
+K = 40
 
 
 def read_post(group_id, post_id):
@@ -42,6 +42,12 @@ line_g = g.readline()
 cnt_all_users = 0
 cnt_good_users = 0
 
+tp = 0
+tn = 0
+fp = 0
+fn = 0
+
+
 while line_f != '' and line_g != '':
     cnt_all_users += 1
 
@@ -63,9 +69,6 @@ while line_f != '' and line_g != '':
 
     dislikes = data_g[1].replace(')(', '|').rstrip(')').lstrip('(')
     dislikes = dislikes.split("|")
-
-    print(likes)
-    print(dislikes)
 
     like_text_posts = open('like_texts.txt', 'w', encoding='utf-8')
     dislike_text_posts = open('dislike_texts.txt', 'w', encoding='utf-8')
@@ -97,21 +100,17 @@ while line_f != '' and line_g != '':
         text = read_post(group_id, post_id)
         if is_image(text):
             continue
-        print("Dislike: " + text)
         dislike_posts.append(text)
 
     cnt_dislikes = len(dislike_posts)
 
-    if cnt_dislikes < 10 or cnt_likes < 10:
+    if cnt_dislikes < 20 or cnt_likes < 20:
         line_f = f.readline()
         line_g = g.readline()
         continue
 
     train_dislikes = dislike_posts[0:int(cnt_dislikes*0.8)]
     test_dislikes = dislike_posts[int(cnt_dislikes * 0.8):]
-
-    print(train_likes)
-    print(train_dislikes)
 
     for dislike in train_dislikes:
         dislike_text_posts.write(dislike)
@@ -134,9 +133,13 @@ while line_f != '' and line_g != '':
     topic_of_words_like = dict()
     topic_of_words_dislike = dict()
 
+    bad_user = False
     for typ in types:
-        topic_score, word_in_topic, word_score, word_ids, id_words = extract_text_topics.extract_text_topics(typ + '_texts.txt', typ, K, user_id, model)
-
+        topic_score, word_in_topic, word_score, word_ids, id_words, newK = extract_text_topics.extract_text_topics(typ + '_texts.txt', typ, K, user_id, model)
+        if newK != K:
+            print("Too less words for that user :(")
+            bad_user = True
+            break
         W = None
         if typ == 'like':
             W = W_like
@@ -144,15 +147,15 @@ while line_f != '' and line_g != '':
             W = W_dislike
 
         topic_scores_summary = 0
-        for i in range(K):
+        for i in range(newK):
             topic_scores_summary += topic_score[i]
 
-        for i in range(K):
+        for i in range(newK):
             W[i] = topic_score[i] / topic_scores_summary
 
         topic_of_words = dict()
         score = dict()
-        for i in range(K):
+        for i in range(newK):
             word_score_summary = 0
             for p in word_in_topic[i]:
                 word = p[1]
@@ -160,8 +163,9 @@ while line_f != '' and line_g != '':
 
             for p in word_in_topic[i]:
                 word = p[1]
+                score[word] = word_score[id_words[word]][0]
                 if word_score_summary != 0:
-                    score[word] = word_score[id_words[word]][0] / word_score_summary
+                    score[word] /= word_score_summary
                 topic_of_words[word] = i
         if typ == 'like':
             score_like = score
@@ -172,45 +176,45 @@ while line_f != '' and line_g != '':
 
     # finish training
 
+    if bad_user:
+        line_f = f.readline()
+        line_g = g.readline()
+        continue
     PT = [0] * K
-
-    tp = 0
-    tn = 0
-    fp = 0
-    fn = 0
 
     for d in test_likes:
         sentences = prepare_sentence_stream.string_to_stream(d)
         if len(sentences) == 0:
             continue
-        print(sentences)
         p_like = 0
         p_dislike = 0
-        P_like = [0] * K
-        P_dislike = [0] * K
+        P_like = [0] * len(topic_of_words_like)
+        P_dislike = [0] * len(topic_of_words_dislike)
+        sum_like = 0
+        sum_dislike = 0
         for sentence in sentences:
             for word in sentence:
                 if word in topic_of_words_like:
                     P_like[topic_of_words_like[word]] += score_like[word]
+                    sum_like += score_like[word]
                 if word in topic_of_words_dislike:
                     P_dislike[topic_of_words_dislike[word]] += score_dislike[word]
-
+                    sum_dislike += score_dislike[word]
+        print(d)
+        print(sum_like, sum_dislike)
         for i in range(K):
-            p_like += P_like[i] * W_like[i]
-            p_dislike += P_dislike[i] * W_dislike[i]
+            p_like += (P_like[i] / sum_like) * W_like[i]
+            p_dislike += (P_dislike[i] / sum_dislike) * W_dislike[i]
 
-            if p_like >= p_dislike:
-                tp += 1
-            else:
-                fn += 1
-
-        print("%.20lf %.20lf" % (p_like, p_dislike))
+        if p_like >= p_dislike:
+            tp += 1
+        else:
+            fn += 1
 
     for d in test_dislikes:
         sentences = prepare_sentence_stream.string_to_stream(d)
         if len(sentences) == 0:
             continue
-        print(sentences)
         p_like = 0
         p_dislike = 0
         P_like = [0] * K
@@ -226,17 +230,16 @@ while line_f != '' and line_g != '':
             p_like += P_like[i] * W_like[i]
             p_dislike += P_dislike[i] * W_dislike[i]
 
-            if p_like < p_dislike:
-                tn += 1
-            else:
-                fp += 1
-        print("%.20lf %.20lf" % (p_like, p_dislike))
+        if p_like < p_dislike:
+            tn += 1
+        else:
+            fp += 1
 
     cnt_good_users += 1
-    if cnt_good_users > 5:
-        print("Precision: %.5f\n" % (tp / (tp + fp)))
+    if cnt_good_users % 5 == 0:
+        print("%d users were proceed (among of %d)" % (cnt_good_users, cnt_all_users))
+        print("Precision: %.5f" % (tp / (tp + fp)))
         print("Recall: %.5f\n" % (tp / (tp + fn)))
-        break
 
     line_f = f.readline()
     line_g = g.readline()
