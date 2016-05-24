@@ -8,7 +8,7 @@ D = 200 + 25
 INF = 1e9
 
 
-def extract_text_topics(file, K, user_id, model):
+def extract_text_topics(file, type_file, K, user_id, model):
     centers = [None] * (2 * K)
     for i in range(2 * K):
         centers[i] = [0.0] * D
@@ -79,7 +79,7 @@ def extract_text_topics(file, K, user_id, model):
 
     print("Building model")
 
-    small_model = gensim.models.Word2Vec.load_word2vec_format('word2vec/w2v.bin', binary=True, unicode_errors='ignore')
+    small_model = gensim.models.Word2Vec.load_word2vec_format('word2vec/w2v_' + type_file + '.bin', binary=True, unicode_errors='ignore')
 
     print("Built model")
 
@@ -116,7 +116,7 @@ def extract_text_topics(file, K, user_id, model):
                         word = norm_word
 
                         tags = morph.parse(word)[0].tag
-                        if 'NOUN' not in tags and 'LATN' not in tags and 'ADJF' not in tags:
+                        if 'NOUN' not in tags and 'LATN' not in tags: # and 'ADJF' not in tags: # and 'VERB' not in tags and 'INFN' not in tags:
                             continue
                         if norm_word not in model:
                             continue
@@ -130,8 +130,8 @@ def extract_text_topics(file, K, user_id, model):
                             word = unnorm
 
                         if word not in small_model:
-                            print("WTF???" + word)
-                            print(norm_word)
+                            # print("WTF???" + word)
+                            # print(norm_word)
                             continue
 
                         id_words[norm_word] = cur_id
@@ -143,12 +143,14 @@ def extract_text_topics(file, K, user_id, model):
                         x_norm = norm(x)
                         data.append(division(x, x_norm))
 
-    print("#####")
-    print(len(normal_forms))
-    print(len(word_ids))
-    print(len(id_words))
-    print("#####")
+    # print("#####")
+    # print(len(normal_forms))
+    # print(len(word_ids))
+    # print(len(id_words))
+    # print("#####")
 
+    K = min(K, len(id_words))
+    print(K)
     clust = MiniBatchKMeans(n_clusters=K, init='k-means++', max_iter=100, batch_size=10000)
 
     res = clust.fit(data)
@@ -162,7 +164,7 @@ def extract_text_topics(file, K, user_id, model):
         add(centers[cluster_id], division(x, vec_norm))
         clusters_size[cluster_id] += 1
 
-    print("Load clusters")
+    #print("Load clusters")
 
     for i in range(K):
         if clusters_size[i] > 0:
@@ -170,7 +172,7 @@ def extract_text_topics(file, K, user_id, model):
         else:
             active_clusters[i] = False
 
-    print("Compute distances")
+    #print("Compute distances")
 
     for i in range(K):
         if not active_clusters[i]:
@@ -196,13 +198,13 @@ def extract_text_topics(file, K, user_id, model):
 
             min_tuple = minimum_tuple(min_dist[i], min_tuple)
 
-        print("Iteration #%d" % cnt)
-        print(min_tuple[1])
+        #print("Iteration #%d" % cnt)
+        #print(min_tuple[1])
 
         if min_tuple[1] == -1:
             break
-        print(min_dist[min_tuple[1]][1])
-        print(min_tuple[0])
+        #print(min_dist[min_tuple[1]][1])
+        #print(min_tuple[0])
         merge_clusters(min_tuple[1], min_dist[min_tuple[1]][1])
 
         for i in range(cnt_clusters + 1):
@@ -241,6 +243,7 @@ def extract_text_topics(file, K, user_id, model):
         dfs(tree[v][0])
         dfs(tree[v][1])
 
+    dfs(cnt_clusters - 1)
     depth = [-1] * len(word_ids)
     max_depth = -1
     for i in range(len(word_ids)):
@@ -249,8 +252,8 @@ def extract_text_topics(file, K, user_id, model):
 
     degree = dict()
     max_degree = -1
-    print("here")
-    with open('../OK_results/user' + user_id + '/words_degrees.txt', encoding='utf-8') as f:
+
+    with open('../OK_recommend/user' + user_id + '/words_degrees_' + type_file + '.txt', encoding='utf-8') as f:
         for line in f:
             line = line.rstrip("\n")
             data = line.split(" ")
@@ -262,11 +265,14 @@ def extract_text_topics(file, K, user_id, model):
     score = [None] * len(word_ids)
 
     for i in range(len(word_ids)):
+        #print(word_ids[i])
+        #print(degree[word_ids[i]])
+
         score[i] = ((depth[i] / max_depth) * (math.log(1 + degree[word_ids[i]]) / max_degree), word_ids[i])
 
     score.sort(key=itemgetter(0), reverse=True)
 
-    g = open('../OK_results/user' + user_id + '/words_scoring' + str(K) + '.txt', 'w', encoding='utf-8')
+    g = open('../OK_recommend/user' + user_id + '/words_scoring_' + type_file + str(K) + '.txt', 'w', encoding='utf-8')
     for t in score:
         g.write(t[1] + ' ' + str("%.10f" % t[0]) + '\n')
 
@@ -289,7 +295,7 @@ def extract_text_topics(file, K, user_id, model):
 
     topic_score_sort.sort(key=itemgetter(0), reverse=True)
 
-    h = open('../OK_results/user' + user_id + '/topics_scoring' + str(K) + '.txt', 'w', encoding='utf-8')
+    h = open('../OK_recommend/user' + user_id + '/topics_scoring_' + type_file + str(K) + '.txt', 'w', encoding='utf-8')
     for i in range(K):
         id_topic = topic_score_sort[i][1]
         h.write("Topic #" + str(id_topic) + ": " + str("%.5f" % topic_score_sort[i][0]) + "\n")
@@ -297,4 +303,6 @@ def extract_text_topics(file, K, user_id, model):
         for j in range(min(20, len(words_in_topic[id_topic]))):
             h.write(words_in_topic[id_topic][j][1] + " ")
         h.write("\n")
+
+    return topic_score, words_in_topic, score, word_ids, id_words, K
 
